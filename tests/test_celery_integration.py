@@ -4,14 +4,13 @@ Integration tests for celery-typed library.
 Tests the complete workflow including Kombu registration, serialization,
 and deserialization in realistic scenarios.
 """
+from datetime import date, timedelta
 
 import pytest
 from _helpers import ComplexModel, NestedModel, SampleModel
 from pydantic import BaseModel, Field
 
-from celery_typed import (
-    register_pydantic_serializer,
-)
+from celery_typed import register_pydantic_serializer
 
 
 class UserModel(BaseModel):
@@ -119,13 +118,21 @@ class TestFullIntegration:
         assert deserialized.metadata == payload.metadata
         assert deserialized == payload
 
-    def test_multiple_model_types_in_sequence(self, mock_kombu_registry):
+    def test_multiple_model_types_in_sequence(self, mock_kombu_registry, sample_model, complex_model):
         """Test serializing different model types in sequence."""
         register_pydantic_serializer()
 
         models = [
             SampleModel(name="Alice", age=30, email="alice@test.com"),
-            ComplexModel(id=1, name="Test", tags=["a", "b"], config={"x": 1}),
+            ComplexModel(
+                id=1,
+                name="Test",
+                tags=["a", "b"],
+                config={"x": 1},
+                created=date(2026, 10, 15),
+                elapsed=timedelta(seconds=123.456),
+                elapsed_seconds=timedelta(seconds=123.456),
+            ),
             UserModel(id=2, username="bob", email="bob@test.com"),
         ]
 
